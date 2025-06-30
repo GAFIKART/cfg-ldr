@@ -1,0 +1,22 @@
+# Конфигурация сервера
+server:
+  host: "0.0.0.0"
+  port: 9090
+
+# Конфигурация базы данных
+database:
+  host: "db.example.com"
+  port: 5432
+  name: "production_db"
+  user: "app_user"
+  password: "secret_password_123"
+
+# Настройки логирования
+logging:
+  level: "debug"
+  file: "production.log"
+
+# Функциональные флаги
+features:
+  cache_enabled: true
+  debug_mode: false 
