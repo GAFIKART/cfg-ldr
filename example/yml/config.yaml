@@ -19,4 +19,10 @@ logging:
 # Функциональные флаги
 features:
   cache_enabled: true
-  debug_mode: false 
+  debug_mode: false
+
+# Списки и массивы
+lists:
+  allowed_hosts: ["localhost", "127.0.0.1", "example.com"]
+  ports: [8080, 9090, 3000]
+  features: ["cache", "logging", "metrics"] 

@@ -169,9 +169,81 @@ func setValue(fieldVal reflect.Value, val any) error {
 			}
 		}
 		fieldVal.SetBool(boolVal)
+	case reflect.Slice:
+		return setSliceValue(fieldVal, val)
 	default:
 		return fmt.Errorf("unsupported field type: %s", fieldVal.Kind())
 	}
+	return nil
+}
+
+func setSliceValue(fieldVal reflect.Value, val any) error {
+	elemType := fieldVal.Type().Elem()
+
+	if slice, ok := val.([]any); ok {
+		result := reflect.MakeSlice(fieldVal.Type(), len(slice), len(slice))
+
+		for i, item := range slice {
+			elem := reflect.New(elemType).Elem()
+
+			err := setValue(elem, item)
+			if err != nil {
+				return fmt.Errorf("failed to set slice element %d: %v", i, err)
+			}
+
+			result.Index(i).Set(elem)
+		}
+
+		fieldVal.Set(result)
+		return nil
+	}
+
+	if str, ok := val.(string); ok {
+		if strings.HasPrefix(strings.TrimSpace(str), "[") && strings.HasSuffix(strings.TrimSpace(str), "]") {
+			if elemType.Kind() == reflect.String {
+				content := strings.TrimSpace(str[1 : len(str)-1])
+				if content == "" {
+					fieldVal.Set(reflect.MakeSlice(fieldVal.Type(), 0, 0))
+					return nil
+				}
+
+				items := strings.Split(content, ",")
+				result := reflect.MakeSlice(fieldVal.Type(), len(items), len(items))
+
+				for i, item := range items {
+					cleanItem := strings.Trim(strings.TrimSpace(item), `"'`)
+					result.Index(i).SetString(cleanItem)
+				}
+
+				fieldVal.Set(result)
+				return nil
+			}
+		}
+
+		if elemType.Kind() == reflect.String {
+			items := strings.Split(str, ",")
+			result := reflect.MakeSlice(fieldVal.Type(), len(items), len(items))
+
+			for i, item := range items {
+				cleanItem := strings.TrimSpace(item)
+				result.Index(i).SetString(cleanItem)
+			}
+
+			fieldVal.Set(result)
+			return nil
+		}
+	}
+
+	elem := reflect.New(elemType).Elem()
+	err := setValue(elem, val)
+	if err != nil {
+		return fmt.Errorf("failed to set single element in slice: %v", err)
+	}
+
+	result := reflect.MakeSlice(fieldVal.Type(), 1, 1)
+	result.Index(0).Set(elem)
+	fieldVal.Set(result)
+
 	return nil
 }
 

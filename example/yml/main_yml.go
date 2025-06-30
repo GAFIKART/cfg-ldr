@@ -34,6 +34,12 @@ type Config struct {
 		CacheEnabled bool `yaml:"cache_enabled"`
 		DebugMode    bool `yaml:"debug_mode"`
 	} `yaml:"features"`
+
+	Lists struct {
+		AllowedHosts []string `yaml:"allowed_hosts"`
+		Ports        []int    `yaml:"ports"`
+		Features     []string `yaml:"features"`
+	} `yaml:"lists"`
 }
 
 func main() {
@@ -62,4 +68,9 @@ func main() {
 		config.Database.Host, config.Database.Port, config.Database.Name, config.Database.User)
 	fmt.Printf("Логирование: уровень=%s, файл=%s\n", config.Logging.Level, config.Logging.File)
 	fmt.Printf("Функции: кэш=%v, отладка=%v\n", config.Features.CacheEnabled, config.Features.DebugMode)
+
+	// Выводим слайсы
+	fmt.Printf("Разрешенные хосты: %v\n", config.Lists.AllowedHosts)
+	fmt.Printf("Порты: %v\n", config.Lists.Ports)
+	fmt.Printf("Функции: %v\n", config.Lists.Features)
 }

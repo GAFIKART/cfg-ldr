@@ -34,6 +34,12 @@ type Config struct {
 		CacheEnabled bool `cfgldr:"val=cache_enabled"`
 		DebugMode    bool `cfgldr:"val=debug_mode"`
 	}
+
+	Lists struct {
+		AllowedHosts []string `cfgldr:"val=allowed_hosts"`
+		Ports        []int    `cfgldr:"val=ports"`
+		Features     []string `cfgldr:"val=features"`
+	}
 }
 
 func main() {
@@ -70,4 +76,9 @@ func main() {
 		config.Database.Host, config.Database.Port, config.Database.Name, config.Database.User)
 	fmt.Printf("Логирование: уровень=%s, файл=%s\n", config.Logging.Level, config.Logging.File)
 	fmt.Printf("Функции: кэш=%v, отладка=%v\n", config.Features.CacheEnabled, config.Features.DebugMode)
+
+	// Выводим слайсы
+	fmt.Printf("Разрешенные хосты: %v\n", config.Lists.AllowedHosts)
+	fmt.Printf("Порты: %v\n", config.Lists.Ports)
+	fmt.Printf("Функции: %v\n", config.Lists.Features)
 }
