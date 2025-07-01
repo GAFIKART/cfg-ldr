@@ -8,8 +8,21 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-func getVaultValue(client *api.Client, mount, secretPath, key string) (any, error) {
-	vaultPath := fmt.Sprintf("%s/data/%s", mount, secretPath)
+func buildDataVaultPath(basePath string) (string, error) {
+	if basePath == "" {
+		return "", fmt.Errorf("basePath is empty")
+	}
+
+	slashIndex := strings.Index(basePath, "/")
+	if slashIndex == -1 {
+		return basePath + "/data", nil
+	}
+
+	return basePath[:slashIndex+1] + "data" + basePath[slashIndex:], nil
+}
+
+func getVaultValue(client *api.Client, vaultPath, key string) (any, error) {
+
 	secret, err := client.Logical().Read(vaultPath)
 	if err != nil {
 		return nil, err
@@ -70,21 +83,21 @@ func fillStructFromVault(v any, client *api.Client, basePath string) error {
 			continue
 		}
 
-		secretPath := basePath
-		if secretPath != "" {
-			secretPath = secretPath + "/" + vaultKey
-		} else {
-			secretPath = vaultKey
-		}
-		valFromVault, err := getVaultValue(client, basePath, secretPath, vaultKey)
+		vaultPath, err := buildDataVaultPath(basePath)
 		if err != nil {
-			fmt.Printf("⚠️ Value not found for key: %s (field: %s) — %v\n", secretPath, vaultKey, err)
+			fmt.Printf("⚠️ Error building vault path: %s, %v\n", basePath, err)
+			continue
+		}
+
+		valFromVault, err := getVaultValue(client, vaultPath, vaultKey)
+		if err != nil {
+			fmt.Printf("⚠️ Value not found for key: %s (field: %s) — %v\n", basePath, vaultKey, err)
 			continue
 		}
 		if fieldVal.CanSet() {
 			err = setValue(fieldVal, valFromVault)
 			if err != nil {
-				fmt.Printf("⚠️ Failed to set value for %s (field: %s): %v\n", secretPath, vaultKey, err)
+				fmt.Printf("⚠️ Failed to set value for %s (field: %s): %v\n", basePath, vaultKey, err)
 			}
 		}
 	}
