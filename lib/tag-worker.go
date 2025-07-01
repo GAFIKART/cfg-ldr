@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-func getVaultValue(client *api.Client, mount, key string) (any, error) {
-	vaultPath := fmt.Sprintf("%s/data/%s", mount, key)
+func getVaultValue(client *api.Client, mount, secretPath, key string) (any, error) {
+	vaultPath := fmt.Sprintf("%s/data/%s", mount, secretPath)
 	secret, err := client.Logical().Read(vaultPath)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func fillStructFromVault(v any, client *api.Client, basePath string) error {
 		} else {
 			secretPath = vaultKey
 		}
-		valFromVault, err := getVaultValue(client, secretPath, vaultKey)
+		valFromVault, err := getVaultValue(client, basePath, secretPath, vaultKey)
 		if err != nil {
 			fmt.Printf("⚠️ Value not found for key: %s (field: %s) — %v\n", secretPath, vaultKey, err)
 			continue
