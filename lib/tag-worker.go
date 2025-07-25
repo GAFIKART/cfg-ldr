@@ -57,8 +57,8 @@ func fillStructFromVault(v any, client *api.Client, basePath string) error {
 		return fmt.Errorf("expected struct, got %T", v)
 	}
 
-	for i, field := range reflect.VisibleFields(typ) {
-		fieldVal := val.Field(i)
+	for _, field := range reflect.VisibleFields(typ) {
+		fieldVal := val.FieldByName(field.Name)
 		cfgldrTag := field.Tag.Get(TagName)
 		if cfgldrTag == "-" {
 			continue
@@ -66,8 +66,8 @@ func fillStructFromVault(v any, client *api.Client, basePath string) error {
 		vaultKey := field.Name
 		if cfgldrTag != "" {
 			for part := range strings.SplitSeq(cfgldrTag, ",") {
-				if strings.HasPrefix(part, ValTagParam) {
-					vaultKey = strings.TrimPrefix(part, ValTagParam)
+				if v, ok := strings.CutPrefix(part, ValTagParam); ok {
+					vaultKey = v
 				}
 			}
 		}
